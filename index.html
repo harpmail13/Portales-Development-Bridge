@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Portales</title>
+
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&display=swap"
+rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+
+<style>
+
+:root{
+
+    --bg:#09090b;
+    --card:#121216;
+
+    --border:
+        rgba(255,255,255,.08);
+
+    --text:#f4f4f5;
+
+    --muted:#a1a1aa;
+}
+
+*{
+
+    margin:0;
+    padding:0;
+
+    box-sizing:border-box;
+}
+
+body{
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:'Doto',sans-serif;
+
+    width:100vw;
+    height:100vh;
+
+    overflow:hidden;
+}
+
+/* Loader */
+
+.loader{
+
+    width:100vw;
+    height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+}
+
+.loader-card{
+
+    width:500px;
+    max-width:90vw;
+
+    padding:3rem;
+
+    background:var(--card);
+
+    border-left:
+    1px solid var(--border);
+
+    border-right:
+    1px solid var(--border);
+}
+
+.header{
+
+    display:flex;
+
+    justify-content:
+    space-between;
+
+    align-items:center;
+
+    margin-bottom:2rem;
+}
+
+.logo{
+
+    font-size:2.5rem;
+
+    font-weight:700;
+
+    color:white;
+}
+
+.percent{
+
+    color:var(--muted);
+
+    font-size:.9rem;
+}
+
+.status{
+
+    margin-bottom:1rem;
+
+    color:var(--muted);
+
+    letter-spacing:.05em;
+}
+
+.progress-track{
+
+    height:8px;
+
+    background:#18181b;
+
+    border-radius:999px;
+
+    overflow:hidden;
+
+    position:relative;
+
+    border:
+    1px solid var(--border);
+}
+
+.progress-fill{
+
+    width:0%;
+
+    height:100%;
+
+    background:white;
+
+    transition:
+    width .25s ease;
+}
+
+.progress-fill::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+    left:-100%;
+
+    width:50%;
+    height:100%;
+
+    background:
+        rgba(255,255,255,.5);
+
+    animation:
+        sweep 2s linear infinite;
+}
+
+@keyframes sweep{
+
+    from{
+        left:-50%;
+    }
+
+    to{
+        left:150%;
+    }
+}
+
+#payload-container{
+
+    display:none;
+
+    width:100vw;
+    height:100vh;
+}
+
+.fade-out{
+
+    animation:
+    fadeOut .35s ease forwards;
+}
+
+@keyframes fadeOut{
+
+    from{
+        opacity:1;
+    }
+
+    to{
+        opacity:0;
+    }
+}
+
+</style>
+</head>
+<body>
+
+<div
+class="loader"
+id="loader">
+
+    <div class="loader-card">
+
+        <div class="header">
+
+            <div class="logo">
+                Portales
+            </div>
+
+            <div
+            class="percent"
+            id="percent">
+                0%
+            </div>
+
+        </div>
+
+        <div
+        class="status"
+        id="status">
+            Connecting Runtime
+        </div>
+
+        <div
+        class="progress-track">
+
+            <div
+            class="progress-fill"
+            id="fill">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div
+id="payload-container">
+</div>
+
+<script>
+
+// CHANGE THIS
+
+const SERVER =
+    "https://90r05sbq-8765.usw3.devtunnels.ms/";
+
+// Elements
+
+const fill =
+document.getElementById("fill");
+
+const percent =
+document.getElementById("percent");
+
+const status =
+document.getElementById("status");
+
+const loader =
+document.getElementById("loader");
+
+const payloadContainer =
+document.getElementById(
+    "payload-container"
+);
+
+// Progress
+
+function updateProgress(
+    value,
+    text
+){
+
+    fill.style.width =
+        value + "%";
+
+    percent.textContent =
+        value + "%";
+
+    if(text){
+
+        status.textContent =
+            text;
+    }
+}
+
+// Compression
+
+function decompress(
+    compressed
+){
+
+    const binary =
+        atob(compressed);
+
+    const bytes =
+        Uint8Array.from(
+            binary,
+            c =>
+            c.charCodeAt(0)
+        );
+
+    return pako.inflate(
+        bytes,
+        {to:"string"}
+    );
+}
+
+// Boot
+
+function launchPayload(
+    html
+){
+
+    updateProgress(
+        100,
+        "Launching Application"
+    );
+
+    setTimeout(()=>{
+
+        loader.classList.add(
+            "fade-out"
+        );
+
+        setTimeout(()=>{
+
+            payloadContainer.style.display =
+                "block";
+
+            payloadContainer.innerHTML =
+                html;
+
+            loader.remove();
+
+        },350);
+
+    },200);
+}
+
+// Connect immediately
+
+const socket =
+new WebSocket(
+    SERVER
+);
+
+socket.onopen = () => {
+
+    socket.send(
+        JSON.stringify({
+            action:"deploy"
+        })
+    );
+
+};
+
+socket.onmessage =
+(event)=>{
+
+    const data =
+        JSON.parse(
+            event.data
+        );
+
+    if(
+        data.progress !==
+        undefined
+    ){
+
+        updateProgress(
+            data.progress,
+            data.status_text
+        );
+    }
+
+    if(
+        data.payload_html
+    ){
+
+        const html =
+        data.compressed
+        ? decompress(
+            data.payload_html
+          )
+        : data.payload_html;
+
+        launchPayload(html);
+    }
+};
+
+socket.onerror = ()=>{
+
+    status.textContent =
+        "Runtime Offline";
+};
+
+socket.onclose = ()=>{
+
+    status.textContent =
+        "Lost Connection";
+};
+
+</script>
+
+</body>
+</html>
