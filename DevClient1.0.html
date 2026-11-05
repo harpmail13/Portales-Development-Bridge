@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portales Dev Portal</title>
+    <!-- Import Doto Font from Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #09090b;
+            --card-bg: #121216;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --primary: #f4f4f5;
+            --primary-hover: #ffffff;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+        }
+
+        body {
+            font-family: 'Doto', system-ui, -apple-system, sans-serif;
+            background: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Fullscreen Portal Card */
+        .portal-card {
+            background: var(--card-bg);
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            transition: opacity 0.4s ease;
+        }
+
+        .portal-content-wrapper {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .portal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h2 { 
+            margin: 0; 
+            font-size: 2.25rem; 
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .disconnected { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #a1a1aa; 
+            border: 1px solid var(--border-color);
+        }
+        .disconnected::before { background: #71717a; }
+
+        .connected { 
+            background: rgba(255, 255, 255, 0.1); 
+            color: #ffffff; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .connected::before { background: #ffffff; box-shadow: 0 0 8px rgba(255,255,255,0.8); }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 0.6rem; 
+            font-size: 0.85rem; 
+            font-weight: 500;
+            color: var(--text-muted); 
+        }
+
+        input {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #18181b;
+            color: var(--text-main);
+            font-family: 'Doto', system-ui, sans-serif;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input::placeholder { color: #52525b; }
+        
+        input:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.15);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--primary);
+            color: #09090b;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Doto', system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { 
+            background: var(--primary-hover); 
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* Progress Bar Styles */
+        #progress-wrapper {
+            display: none;
+            margin-top: 1.5rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #18181b;
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: #ffffff;
+            border-radius: 9999px;
+            transition: width 0.1s linear;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Container for the incoming payload view */
+        #payload-container {
+            display: none;
+            width: 100vw;
+            min-height: 100vh;
+            box-sizing: border-box;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fullscreen Portales Input Card -->
+    <div class="portal-card" id="portal-card">
+        <div class="portal-content-wrapper">
+            <div class="portal-header">
+                <h2>Portales</h2>
+                <span class="status-badge disconnected" id="badge">Disconnected</span>
+            </div>
+            
+            <div class="input-group">
+                <label for="ip-input">Target IP Address</label>
+                <input type="text" id="ip-input" placeholder="e.g., 192.168.1.50" autocomplete="off">
+            </div>
+            
+            <button id="deploy-btn">Connect & Deploy</button>
+
+            <!-- Upload Progress Bar Component -->
+            <div id="progress-wrapper">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progress-status-text">Uploading payload...</span>
+                    <span id="progress-percentage">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payload Render Container -->
+    <div id="payload-container"></div>
+
+    <script>
+        let socket;
+        const badge = document.getElementById('badge');
+        const ipInput = document.getElementById('ip-input');
+        const deployBtn = document.getElementById('deploy-btn');
+        const portalCard = document.getElementById('portal-card');
+        const payloadContainer = document.getElementById('payload-container');
+        const progressWrapper = document.getElementById('progress-wrapper');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const progressStatusText = document.getElementById('progress-status-text');
+
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:8765');
+
+            socket.onopen = () => {
+                badge.textContent = "Online";
+                badge.className = "status-badge connected";
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.progress !== undefined) {
+                    progressFill.style.width = data.progress + '%';
+                    progressPercentage.textContent = data.progress + '%';
+                    if (data.status_text) {
+                        progressStatusText.textContent = data.status_text;
+                    }
+                }
+                
+                if (data.payload_html) {
+                    progressFill.style.width = '100%';
+                    progressPercentage.textContent = '100%';
+                    
+                    setTimeout(() => {
+                        portalCard.style.display = 'none';
+                        payloadContainer.style.display = 'block';
+                        payloadContainer.innerHTML = data.payload_html;
+                        
+                        // Automatically sync the browser tab title to match the payload's title if present
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.payload_html;
+                        const payloadTitleTag = tempDiv.querySelector('title');
+                        if (payloadTitleTag) {
+                            document.title = payloadTitleTag.textContent;
+                        }
+                    }, 300);
+                }
+            };
+
+            socket.onclose = () => {
+                badge.textContent = "Disconnected";
+                badge.className = "status-badge disconnected";
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        deployBtn.addEventListener('click', () => {
+            const ip = ipInput.value.trim();
+            if (!ip) {
+                ipInput.style.borderColor = '#ffffff';
+                setTimeout(() => ipInput.style.borderColor = '', 1500);
+                return;
+            }
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    ip: ip,
+                    action: "deploy"
+                }));
+                
+                deployBtn.textContent = "Deploying...";
+                deployBtn.disabled = true;
+                deployBtn.style.opacity = '0.5';
+                progressWrapper.style.display = 'block';
+
+                let currentProgress = 0;
+                const simInterval = setInterval(() => {
+                    if (currentProgress < 90) {
+                        currentProgress += Math.floor(Math.random() * 15) + 5;
+                        if (currentProgress > 90) currentProgress = 90;
+                        progressFill.style.width = currentProgress + '%';
+                        progressPercentage.textContent = currentProgress + '%';
+                    } else {
+                        clearInterval(simInterval);
+                    }
+                }, 150);
+
+            } else {
+                alert("WebSocket bridge is offline. Make sure server.py is running.");
+            }
+        });
+
+        ipInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                deployBtn.click();
+            }
+        });
+
+        connectWebSocket();
+    </script>
+</body>
+</html>
